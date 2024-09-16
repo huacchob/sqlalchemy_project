@@ -1,0 +1,22 @@
+services:
+  db:
+    environment:
+    - POSTGRES_USER=change_me
+    - POSTGRES_PASSWORD=change_me
+    - POSTGRES_DB=change_me
+    image: postgres
+    ports:
+    - 5432:5432
+    volumes:
+    - ./database_volume:/var/lib/postgresql/data
+  pgadmin:
+    depends_on:
+    - db
+    environment:
+    - PGADMIN_DEFAULT_EMAIL=change_me
+    - PGADMIN_DEFAULT_PASSWORD=change_me
+    image: dpage/pgadmin4
+    ports:
+    - 5050:80
+    volumes:
+    - ./pgadmin_volume:/var/lib/pgadmin

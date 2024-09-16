@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 def find_file_path(
     target_file_name: str,
     source_file_name: Optional[str | None] = None,
-    dir_level: Optional[int | None] = None,
+    # dir_level: Optional[int | None] = None,
 ) -> Optional[str | None]:
     """Find the path to the file
 
@@ -40,52 +40,18 @@ def find_file_path(
     second_down_dir_items: List[str] = os.listdir(second_down_dir)
     third_down_dir_items: List[str] = os.listdir(third_down_dir)
 
-    first_dir_file: Optional[str | None] = (
-        os.path.join(first_dir, target_file_name)
-        if target_file_name in first_dir_items
-        else None
-    )
-    second_down_dir_file: Optional[str | None] = (
-        os.path.join(second_down_dir, target_file_name)
-        if target_file_name in second_down_dir_items
-        else None
-    )
-    third_down_dir_file: Optional[str | None] = (
-        os.path.join(third_down_dir, target_file_name)
-        if target_file_name in third_down_dir_items
-        else None
-    )
-
-    if (
-        (first_dir_file and second_down_dir_file)
-        or (first_dir_file and third_down_dir_file)
-        or (second_down_dir_file and third_down_dir_file)
-        and not dir_level
-    ):
-        raise ValueError(f"File {target_file_name} exists in multiple directories")
-
-    if not first_dir_file and not second_down_dir_file and not third_down_dir_file:
+    for dir_items in [first_dir_items, second_down_dir_items, third_down_dir_items]:
+        if target_file_name in dir_items:
+            file = os.path.join(os.path.dirname(source_file_name), target_file_name)
+            break
+    else:
         raise ValueError(f"File {target_file_name} not found")
-
-    if dir_level == 1:
-        return first_dir_file
-    elif dir_level == 2:
-        return second_down_dir_file
-    elif dir_level == 3:
-        return third_down_dir_file
-
-    if first_dir_file:
-        return first_dir_file
-    if second_down_dir_file:
-        return second_down_dir_file
-    if third_down_dir_file:
-        return third_down_dir_file
+    return file
 
 
 def load_secrets_from_file(
     target_file_name: str,
     source_file_name: Optional[str | None] = None,
-    dir_level: Optional[int | None] = None,
 ) -> None:
     """Load secrets from .env file
 
@@ -104,7 +70,7 @@ def load_secrets_from_file(
     if not target_file_name.endswith(".env"):
         raise ValueError("File name must end with .env")
     dotenv_path: Optional[str | None] = find_file_path(
-        target_file_name, source_file_name, dir_level
+        target_file_name, source_file_name
     )
     if not dotenv_path:
         raise ValueError(f"File {target_file_name} not found")
