@@ -18,3 +18,9 @@ POSTGRES_ADDRESS=localhost:5432
 
 We set pgadmin to 5050 because that is what is mapped in docker compose file.
 we are using localhost because postgres and pgadmin are both containers.
+
+You may need to change the start_up.sh file to python if python3 doesn't work.
+
+If the file permissions are not set, you may need to change the file permissions for both clean_up and start_up scripts.
+
+You can do so by using the command `a+x chmod clean_up.sh` or `a+x chmod start_up.sh`.
