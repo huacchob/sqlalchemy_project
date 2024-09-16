@@ -23,4 +23,4 @@ You may need to change the start_up.sh file to python if python3 doesn't work.
 
 If the file permissions are not set, you may need to change the file permissions for both clean_up and start_up scripts.
 
-You can do so by using the command `a+x chmod clean_up.sh` or `a+x chmod start_up.sh`.
+You can do so by using the command `u+x chmod clean_up.sh` or `u+x chmod start_up.sh`.
