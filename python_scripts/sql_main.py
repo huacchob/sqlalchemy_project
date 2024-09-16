@@ -63,8 +63,10 @@ if __name__ == "__main__":
     LIMIT {limit};
     """
     sql_main.raw_query(query, sql_main.session, sql_main.logger.info)
+    print("\n")
 
     sql_main.get_table_column_names(table_name, sql_main.logger.info)
+    print("\n")
 
     sql_main.get_tables(sql_main.logger.info)
 
