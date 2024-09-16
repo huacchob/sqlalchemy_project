@@ -1,6 +1,9 @@
 # Secrets
 creds.env
 
+# Docker compose
+docker-compose.yml
+
 # Remove __pycache__ files
 */__pycache__/
 */*/__pycache__/
