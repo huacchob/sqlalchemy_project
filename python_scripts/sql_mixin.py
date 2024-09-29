@@ -2,19 +2,21 @@
 
 from typing import List, Union
 from logging import Logger
+
 from sqlalchemy import create_engine, inspect, text, MetaData, Table
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm.decl_api import DeclarativeMeta
 from sqlalchemy.dialects.postgresql.base import PGInspector
+
 from sql_models import Rating
 
 
 class SQLMixin:
     """SQLMixin class"""
 
-    def configure_engine(
+    def configure_engine(  # pylint: disable=too-many-arguments
         self,
         driver: str,
         username: str,
@@ -77,6 +79,8 @@ class SQLMixin:
         Raises:
             ValueError: Table must be a subclass of DeclarativeMeta
         """
+        if not isinstance(logger, Logger):
+            raise ValueError("Logger must be a subclass of Logger")
         if not isinstance(table, DeclarativeMeta):
             logger(table.__class__)
             raise ValueError("Table must be a subclass of DeclarativeMeta")
@@ -115,7 +119,9 @@ class SQLMixin:
         my_table: Table = self.metadata.tables[table_name]
 
         inspector: Table = inspect(my_table)
-        column_names: List[str] = inspector._columns.keys()
+        column_names: List[str] = (
+            inspector._columns.keys()  # pylint: disable=protected-access
+        )
         logger("Column names: %s", column_names)
 
     def raw_query(self, query: str, session: Session, logger: Logger):

@@ -41,8 +41,7 @@ def find_file_path(
         if directory.joinpath(target_file_name).exists():
             return str(directory.joinpath(target_file_name))
 
-    else:
-        raise ValueError(f"File {target_file_name} not found")
+    raise ValueError(f"File {target_file_name} not found")
 
 
 def load_secrets_from_file(

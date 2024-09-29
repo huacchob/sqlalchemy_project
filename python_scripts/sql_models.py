@@ -9,7 +9,7 @@ Base: DeclarativeMeta = declarative_base()
 user_id_seq: Sequence = Sequence("user_id_seq")
 
 
-class Rating(Base):
+class Rating(Base):  # pylint: disable=too-few-public-methods
     """User model"""
 
     __tablename__ = "ratings"
