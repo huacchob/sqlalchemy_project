@@ -94,9 +94,10 @@ class SQLMixin:
             raise ValueError("Table must be a subclass of DeclarativeMeta")
 
         tables: List[str] = self.get_tables(logging.getLogger(__name__).info)
+        tablename: str = table_obj.__tablename__  # type: ignore
 
-        if str(table_obj.__tablename__) in tables:  # type: ignore
-            logger(f"table {table_obj.__tablename__} already exists")  # type: ignore
+        if str(tablename) in tables:  # type: ignore
+            logger(f"table {tablename} already exists")
             return
 
         table_obj.metadata.create_all(bind=self.engine)  # type: ignore
@@ -129,7 +130,7 @@ class SQLMixin:
         my_table: Table = self.metadata.tables[table_name]
 
         inspector: Table = inspect(my_table)
-        column_names: List[str] = inspector._columns.keys()  # type: ignore # pylint: disable=protected-access
+        column_names: List[str] = inspector._columns.keys()  # type: ignore
         logger(f"Column names: {column_names}")
 
     def raw_query(
