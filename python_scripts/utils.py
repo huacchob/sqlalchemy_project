@@ -1,8 +1,8 @@
 """Utility functions"""
 
 import os
-from pathlib import Path, PosixPath
-from typing import Optional
+from pathlib import Path
+from typing import Optional, TextIO
 import logging
 from logging import Logger, StreamHandler
 
@@ -31,7 +31,7 @@ def find_file_path(
     if not source_file_name:
         raise ValueError("Source file name is not specified")
 
-    source_file_path: PosixPath = Path(source_file_name)
+    source_file_path: Path = Path(source_file_name)
 
     # Check in the same directory, parent directory, and grandparent directory
     for directory in [
@@ -47,7 +47,7 @@ def find_file_path(
 
 def load_secrets_from_file(
     target_file_name: str,
-    source_file_name: Optional[str | None] = None,
+    source_file_name: str,
 ) -> None:
     """Load secrets from .env file
 
@@ -62,11 +62,10 @@ def load_secrets_from_file(
     """
     if not target_file_name.endswith(".env"):
         raise ValueError("File name must end with .env")
-    dotenv_path: Optional[str | None] = find_file_path(
-        target_file_name, source_file_name
+    dotenv_path: Optional[str] = find_file_path(
+        target_file_name,
+        source_file_name,
     )
-    if not dotenv_path:
-        raise ValueError(f"File {target_file_name} not found")
     load_dotenv(dotenv_path)
 
 
@@ -88,13 +87,14 @@ def get_secret(secret_name: str) -> str:
     return secret_value
 
 
-def configure_logger(name: str, logging_level: str) -> Logger:
+def configure_logger(name: str, logger_level_str: str = "DEFAULT") -> Logger:
     """Create logger
 
     Args:
         name (str): The name of the file you are using this function in.
-            Pass __name__ to get the name of the file you are using this function in.
-        logging_level (str): The level of the logger.
+            Pass __name__ to get the name of the file you are using
+            this function in.
+        logger_level_str (str): The level of the logger.
 
     Raises:
         ValueError: Invalid logging level
@@ -102,24 +102,31 @@ def configure_logger(name: str, logging_level: str) -> Logger:
     Returns:
         logger (Logger): The logger
     """
-    logging_level: str = logging_level.upper()
-    if logging_level not in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]:
+    logger_level: str = logger_level_str.upper()
+    if logger_level not in [
+        "DEBUG",
+        "INFO",
+        "WARNING",
+        "ERROR",
+        "CRITICAL",
+        "DEFAULT",
+    ]:
         raise ValueError("Invalid logging level")
-    if logging_level == "DEBUG":
-        logging_level = logging.DEBUG
-    elif logging_level == "INFO":
-        logging_level = logging.INFO
-    elif logging_level == "WARNING":
-        logging_level = logging.WARNING
-    elif logging_level == "ERROR":
-        logging_level = logging.ERROR
-    elif logging_level == "CRITICAL":
-        logging_level = logging.CRITICAL
+
+    logger_mappings: dict[str, int] = {
+        "DEBUG": logging.DEBUG,
+        "INFO": logging.INFO,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
+        "CRITICAL": logging.CRITICAL,
+        "DEFAULT": logging.INFO,
+    }
+    level: int = logger_mappings[logger_level]
 
     logger: Logger = logging.getLogger(name)
-    logger.setLevel(logging_level)
+    logger.setLevel(level)
 
-    console_handler: StreamHandler = StreamHandler()
+    console_handler: StreamHandler[TextIO] = StreamHandler()
     console_handler.setLevel(logging.INFO)
 
     logger.addHandler(console_handler)
