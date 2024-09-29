@@ -11,7 +11,7 @@ from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm.decl_api import DeclarativeMeta
 from sqlalchemy.dialects.postgresql.base import PGInspector
 
-from .sql_models import Rating
+from sql_models import Rating
 
 
 class SQLMixin:
@@ -66,8 +66,6 @@ class SQLMixin:
         Returns:
             List[str]: table names
         """
-        if not isinstance(logger, Logger):
-            raise ValueError("Logger must be a subclass of Logger")
         logger("Table names: %s", self.postgres_inspector.get_table_names())
 
     def create_table(
