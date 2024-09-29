@@ -87,7 +87,7 @@ def get_secret(secret_name: str) -> str:
     return secret_value
 
 
-def configure_logger(name: str, logging_level: str) -> logging:
+def configure_logger(name: str, logging_level: str) -> Logger:
     """Create logger
 
     Args:
