@@ -1,7 +1,8 @@
 """Utility functions"""
 
 import os
-from typing import Optional, List
+from pathlib import Path, PosixPath
+from typing import Optional
 import logging
 from logging import Logger, StreamHandler
 from dotenv import load_dotenv
@@ -9,18 +10,13 @@ from dotenv import load_dotenv
 
 def find_file_path(
     target_file_name: str,
-    source_file_name: Optional[str | None] = None,
-    # dir_level: Optional[int | None] = None,
+    source_file_name: str,
 ) -> Optional[str | None]:
     """Find the path to the file
 
     Args:
         target_file_name (str): The name of the target file.
         source_file_name (Optional[str  |  None], optional): name of the file you are using this function in. Defaults to None.
-        dir_level (Optional[int  |  None], optional): Specify the level of the directory you are using this function in. Defaults to None.
-            1 = Directory of thr file you are using this function in. Example: dir_1/dir_2/this_dir/file_name
-            2 = 2nd level down. Example: dir_1/this_dir/dir_3/file_name
-            3 = 3rd level down. Example: this_dir/dir_3/dir_4/file_name
 
     Raises:
         ValueError: Source file name is not specified
@@ -32,21 +28,20 @@ def find_file_path(
     """
     if not source_file_name:
         raise ValueError("Source file name is not specified")
-    first_dir: str = os.path.dirname(source_file_name)
-    second_down_dir: str = os.path.abspath(os.path.join(first_dir, os.pardir))
-    third_down_dir: str = os.path.abspath(os.path.join(second_down_dir, os.pardir))
 
-    first_dir_items: List[str] = os.listdir(first_dir)
-    second_down_dir_items: List[str] = os.listdir(second_down_dir)
-    third_down_dir_items: List[str] = os.listdir(third_down_dir)
+    source_file_path: PosixPath = Path(source_file_name)
 
-    for dir_items in [first_dir_items, second_down_dir_items, third_down_dir_items]:
-        if target_file_name in dir_items:
-            file = os.path.join(os.path.dirname(source_file_name), target_file_name)
-            break
+    # Check in the same directory, parent directory, and grandparent directory
+    for directory in [
+        source_file_path.parent,
+        source_file_path.parent.parent,
+        source_file_path.parent.parent.parent,
+    ]:
+        if directory.joinpath(target_file_name).exists():
+            return str(directory.joinpath(target_file_name))
+
     else:
         raise ValueError(f"File {target_file_name} not found")
-    return file
 
 
 def load_secrets_from_file(
@@ -58,10 +53,6 @@ def load_secrets_from_file(
     Args:
         target_file_name (str): The name of the target file.
         source_file_name (Optional[str  |  None]): name of the file you are using this function in. Defaults to None.
-        dir_level (Optional[int  |  None], optional): Specify the level of the directory you are using this function in. Defaults to None.
-            1 = Directory of thr file you are using this function in. Example: dir_1/dir_2/this_dir/file_name
-            2 = 2nd level down. Example: dir_1/this_dir/dir_3/file_name
-            3 = 3rd level down. Example: this_dir/dir_3/dir_4/file_name
 
     Raises:
         ValueError: File name must end with .env
