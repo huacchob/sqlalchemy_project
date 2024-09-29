@@ -1,5 +1,6 @@
 """Main module"""
 
+from dataclasses import dataclass
 from typing import List
 from logging import Logger
 
@@ -15,6 +16,7 @@ from utils import get_secret, load_secrets_from_file, configure_logger
 load_secrets_from_file("creds.env", __file__)
 
 
+@dataclass
 class SQLMain(SQLMixin):  # pylint: disable=R0902, R0903
     """SQLMain class"""
 
