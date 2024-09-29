@@ -9,7 +9,7 @@ Base: DeclarativeMeta = declarative_base()
 user_id_seq: Sequence = Sequence("user_id_seq")
 
 
-class Rating(Base):  # pylint: disable=too-few-public-methods
+class Rating(Base):  # type: ignore # pylint: disable=too-few-public-methods
     """User model"""
 
     __tablename__ = "ratings"
@@ -17,13 +17,13 @@ class Rating(Base):  # pylint: disable=too-few-public-methods
     id = Column(Integer, user_id_seq, primary_key=True)
     stars = Column(Integer)
 
-    def __init__(self, stars: int):
+    def __init__(self, stars: Integer):
         """Initialize User
 
         Args:
             stars (int): number of stars
         """
-        self.stars: int = stars
+        self.stars = stars
 
     def __repr__(self):
         """

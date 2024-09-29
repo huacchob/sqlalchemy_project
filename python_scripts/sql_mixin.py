@@ -1,15 +1,20 @@
 """Mixin module"""
 
-from typing import List, Union
+from typing import Any, List, Union, Callable, Optional
 import logging
-from logging import Logger
 
-from sqlalchemy import create_engine, inspect, text, MetaData, Table
+from sqlalchemy import (
+    Inspector,
+    Result,
+    create_engine,
+    inspect,
+    text,
+    MetaData,
+    Table,
+)
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm.decl_api import DeclarativeMeta
-from sqlalchemy.dialects.postgresql.base import PGInspector
 
 from sql_models import Rating
 
@@ -23,7 +28,7 @@ class SQLMixin:
         username: str,
         password: str,
         host: str,
-        port: int,
+        port: Optional[int],
         database: str,
         debug: bool = False,
     ) -> None:
@@ -58,58 +63,60 @@ class SQLMixin:
 
         # inspect will load the existing table into the metadata
         # given an Engine or Connection object
-        self.postgres_inspector: PGInspector = inspect(self.engine)
+        self.postgres_inspector: Inspector = inspect(self.engine)
 
-    def get_tables(self, logger: Logger) -> List[str]:
+    def get_tables(self, logger: Callable[[str], None]) -> List[str]:
         """Get table names
 
-        Returns:
-            List[str]: table names
+        Args:
+            logger (Callable[[str], None]): Logger object
         """
-        logger("Table names: %s", self.postgres_inspector.get_table_names())
+        table_names = self.postgres_inspector.get_table_names()
+        logger(f"Table names: {table_names}")
+        return table_names
 
     def create_table(
         self,
-        table: Union[Rating, DeclarativeMeta],
-        logger: Logger,
+        table_obj: Union[Rating, DeclarativeMeta],
+        logger: Callable[[str], None],
     ) -> None:
         """Create table
 
         Args:
-            table (Union[Rating, DeclarativeMeta]): Table object to create
-            logger (Logger): Logger object
+            table (Union[T, Table],): Table object to create
+            logger (Callable): Logger object
 
         Raises:
             ValueError: Table must be a subclass of DeclarativeMeta
         """
-        if not isinstance(logger, Logger):
-            raise ValueError("Logger must be a subclass of Logger")
-        if not isinstance(table, DeclarativeMeta):
-            logger(table.__class__)
+        if not isinstance(table_obj, DeclarativeMeta):
+            logger(str(table_obj.__class__))
             raise ValueError("Table must be a subclass of DeclarativeMeta")
 
-        tables: List[str] = self.get_tables(logging.getLogger(__name__))
+        tables: List[str] = self.get_tables(logging.getLogger(__name__).info)
 
-        if str(table.__tablename__) in tables:
-            logger("table %s already exists", table.__tablename__)
+        if str(table_obj.__tablename__) in tables:  # type: ignore
+            logger(f"table {table_obj.__tablename__} already exists")  # type: ignore
             return
 
-        table.metadata.create_all(bind=self.engine)
-        self.session.add(table)
+        table_obj.metadata.create_all(bind=self.engine)  # type: ignore
+        self.session.add(table_obj)
         self.session.commit()
 
-    def get_table_columns_data(self, table_name: str, logger: Logger) -> List[str]:
-        """Get table columns
+    def get_table_columns_data(
+        self, table_name: str, logger: Callable[[str], None]
+    ) -> None:
+        """Get table columns data
 
         Args:
-            table_name (str): table name
-
-        Returns:
-            List[str]: table columns
+            table_name (str): Name of the table
+            logger (Callable[[str], None]): Logger object
         """
-        logger(self.postgres_inspector.get_columns(table_name))
+        logger(str(self.postgres_inspector.get_columns(table_name)))
 
-    def get_table_column_names(self, table_name: str, logger: Logger) -> List[str]:
+    def get_table_column_names(
+        self, table_name: str, logger: Callable[[str], None]
+    ) -> None:
         """Get table column names
 
         Args:
@@ -122,12 +129,12 @@ class SQLMixin:
         my_table: Table = self.metadata.tables[table_name]
 
         inspector: Table = inspect(my_table)
-        column_names: List[str] = (
-            inspector._columns.keys()  # pylint: disable=protected-access
-        )
-        logger("Column names: %s", column_names)
+        column_names: List[str] = inspector._columns.keys()  # type: ignore # pylint: disable=protected-access
+        logger(f"Column names: {column_names}")
 
-    def raw_query(self, query: str, session: Session, logger: Logger):
+    def raw_query(
+        self, query: str, session: Session, logger: Callable[[str], None]
+    ) -> None:
         """Raw query
 
         Args:
@@ -136,10 +143,10 @@ class SQLMixin:
             logger (Logger): Logger object
         """
 
-        results: CursorResult = session.execute(text(query))
+        results: Result[Any] = session.execute(text(query))
 
         for result in results:
-            logger(result)
+            logger(str(result))
 
     def close_session(self) -> None:
         """Close session"""

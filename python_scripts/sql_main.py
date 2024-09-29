@@ -4,10 +4,9 @@ from dataclasses import dataclass
 from typing import List
 from logging import Logger
 
-from sqlalchemy import MetaData
+from sqlalchemy import Inspector, MetaData
 from sqlalchemy.orm import Session
 from sqlalchemy.engine import Engine
-from sqlalchemy.dialects.postgresql.base import PGInspector
 
 from sql_mixin import SQLMixin
 from utils import get_secret, load_secrets_from_file, configure_logger
@@ -28,7 +27,7 @@ class SQLMain(SQLMixin):  # pylint: disable=R0902, R0903
         self.db_password: str = get_secret("POSTGRES_PASSWORD")
         db_url: List[str] = get_secret("POSTGRES_ADDRESS").split(":")
         self.db_host: str = db_url[0]
-        self.db_port: str = db_url[1]
+        self.db_port: int = int(db_url[1])
         self.db_name: str = "dvd"
 
         self.configure_engine(
@@ -44,11 +43,10 @@ class SQLMain(SQLMixin):  # pylint: disable=R0902, R0903
         self.engine: Engine
         self.session: Session
         self.metadata: MetaData
-        self.postgres_inspector: PGInspector
+        self.postgres_inspector: Inspector
 
 
 if __name__ == "__main__":
-
     sql_main: SQLMain = SQLMain()
 
     # sql_main.create_table(
