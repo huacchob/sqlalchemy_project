@@ -29,7 +29,9 @@ class TestUtils(unittest.TestCase):
         file_path = find_file_path("creds.env", __file__)
         self.assertIsInstance(file_path, str)
         self.assertIn("creds.env", file_path)
-        self.assertEqual(find_file_path("creds.env", __file__, 1), None)
+        self.assertEqual(
+            find_file_path("creds.env", __file__, 1), None  # pylint: disable=E1121
+        )
 
     def test_load_secrets_from_file(self):
         """Test load_secrets_from_file function"""
@@ -57,7 +59,7 @@ class TestUtils(unittest.TestCase):
                     )
                 if "Success" in test_name:
                     self.assertFalse(os.environ.get("PGADMIN_USERNAME"))
-                    load_secrets_from_file(
+                    load_secrets_from_file(  # pylint: disable=E1121
                         target_file_name,
                         source_file_passed,
                         dir_level,

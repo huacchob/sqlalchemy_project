@@ -1,6 +1,7 @@
 """Mixin module"""
 
 from typing import List, Union
+import logging
 from logging import Logger
 
 from sqlalchemy import create_engine, inspect, text, MetaData, Table
@@ -10,7 +11,7 @@ from sqlalchemy.engine.cursor import CursorResult
 from sqlalchemy.orm.decl_api import DeclarativeMeta
 from sqlalchemy.dialects.postgresql.base import PGInspector
 
-from sql_models import Rating
+from .sql_models import Rating
 
 
 class SQLMixin:
@@ -51,10 +52,12 @@ class SQLMixin:
         self.session: Session = sessionmaker(bind=self.engine)()
         self.metadata: MetaData = MetaData()
 
-        # reflect will load the existing table into the metadata, given an Engine or Connection object
+        # reflect will load the existing table into the metadata
+        # given an Engine or Connection object
         self.metadata.reflect(bind=self.engine)
 
-        # inspect will load the existing table into the metadata, given an Engine or Connection object
+        # inspect will load the existing table into the metadata
+        # given an Engine or Connection object
         self.postgres_inspector: PGInspector = inspect(self.engine)
 
     def get_tables(self, logger: Logger) -> List[str]:
@@ -63,6 +66,8 @@ class SQLMixin:
         Returns:
             List[str]: table names
         """
+        if not isinstance(logger, Logger):
+            raise ValueError("Logger must be a subclass of Logger")
         logger("Table names: %s", self.postgres_inspector.get_table_names())
 
     def create_table(
@@ -85,7 +90,7 @@ class SQLMixin:
             logger(table.__class__)
             raise ValueError("Table must be a subclass of DeclarativeMeta")
 
-        tables: List[str] = self.get_tables()
+        tables: List[str] = self.get_tables(logging.getLogger(__name__))
 
         if str(table.__tablename__) in tables:
             logger("table %s already exists", table.__tablename__)

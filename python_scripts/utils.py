@@ -17,7 +17,8 @@ def find_file_path(
 
     Args:
         target_file_name (str): The name of the target file.
-        source_file_name (Optional[str  |  None], optional): name of the file you are using this function in. Defaults to None.
+        source_file_name (Optional[str  |  None], optional):
+            name of the file you are using this function in. Defaults to None.
 
     Raises:
         ValueError: Source file name is not specified
@@ -52,7 +53,8 @@ def load_secrets_from_file(
 
     Args:
         target_file_name (str): The name of the target file.
-        source_file_name (Optional[str  |  None]): name of the file you are using this function in. Defaults to None.
+        source_file_name (Optional[str  |  None]):
+            name of the file you are using this function in. Defaults to None.
 
     Raises:
         ValueError: File name must end with .env
