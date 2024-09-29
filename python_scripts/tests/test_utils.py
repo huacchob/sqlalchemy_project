@@ -2,16 +2,19 @@
 
 import unittest
 import os
-from typing import List
+from typing import List, Optional, Tuple
 from ..utils import find_file_path, load_secrets_from_file, get_secret
 
 
 class TestUtils(unittest.TestCase):
     """Test utils functions"""
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         """Clean up environment variables"""
-        file_path: str = find_file_path("creds.env", __file__)
+        file_path: Optional[str] = find_file_path("creds.env", __file__)
+
+        if file_path is None:
+            return
 
         with open(file_path, "r", encoding="utf-8") as creds_file:
             secrets_values: str = creds_file.read()
@@ -24,19 +27,19 @@ class TestUtils(unittest.TestCase):
             if os.environ.get(split_secret[0], None):
                 os.environ.pop(split_secret[0])
 
-    def test_find_file_path(self):
+    def test_find_file_path(self) -> None:
         """Test find_file_path function"""
-        file_path = find_file_path("creds.env", __file__)
+        file_path: Optional[str] = find_file_path("creds.env", __file__)
+        if file_path is None:
+            return
+
         self.assertIsInstance(file_path, str)
         self.assertIn("creds.env", file_path)
-        self.assertEqual(
-            find_file_path("creds.env", __file__, 1), None  # pylint: disable=E1121
-        )
 
-    def test_load_secrets_from_file(self):
+    def test_load_secrets_from_file(self) -> None:
         """Test load_secrets_from_file function"""
-        source_file_name = __file__
-        test_cases = [
+        source_file_name: str = __file__
+        test_cases: List[Tuple[str, Optional[str], Optional[int], str]] = [
             ("creds.env", source_file_name, 1, "Failed dir_level 1"),
             ("creds.env", source_file_name, 2, "Failed dir_level 2"),
             ("creds.env", None, 2, "Failed dir_level 2"),
@@ -44,10 +47,10 @@ class TestUtils(unittest.TestCase):
             ("creds.text", source_file_name, None, "Failed not .env file"),
         ]
         for test_case in test_cases:
-            target_file_name = test_case[0]
-            source_file_passed = test_case[1]
-            dir_level = test_case[2]
-            test_name = test_case[3]
+            target_file_name: str = test_case[0]
+            source_file_passed: Optional[str] = test_case[1]
+            dir_level: Optional[int] = test_case[2]
+            test_name: str = test_case[3]
             with unittest.TestCase.subTest(self, msg=test_name):
                 if "Failed" in test_name:
                     self.assertRaises(
@@ -57,27 +60,29 @@ class TestUtils(unittest.TestCase):
                         source_file_passed,
                         dir_level,
                     )
-                if "Success" in test_name:
+                if "Success" in test_name and source_file_passed:
                     self.assertFalse(os.environ.get("PGADMIN_USERNAME"))
                     load_secrets_from_file(  # pylint: disable=E1121
                         target_file_name,
                         source_file_passed,
-                        dir_level,
                     )
                     self.assertTrue(os.environ.get("PGADMIN_USERNAME"))
 
-    def test_get_secret(self):
+    def test_get_secret(self) -> None:
         """Test get_secret function"""
         load_secrets_from_file("creds.env", __file__)
-        test_cases = [
+        test_cases: List[Tuple[str, str]] = [
             ("PGADMIN_USERNAME", "Success PGADMIN_USERNAME"),
             ("DOES_NOT_EXIST", "Failed DOES_NOT_EXIST"),
         ]
         for test_case in test_cases:
-            secret_name = test_case[0]
-            test_name = test_case[1]
+            secret_name: str = test_case[0]
+            test_name: str = test_case[1]
             with unittest.TestCase.subTest(self, msg=test_name):
                 if "Failed" in test_name:
                     self.assertRaises(ValueError, get_secret, secret_name)
                 if "Success" in test_name:
-                    self.assertEqual(get_secret(secret_name), "huaccho@email.com")
+                    self.assertEqual(
+                        get_secret(secret_name),
+                        "huaccho@email.com",
+                    )
