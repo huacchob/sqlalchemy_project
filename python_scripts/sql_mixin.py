@@ -1,22 +1,21 @@
 """Mixin module"""
 
-from typing import Any, List, Union, Callable, Optional
 import logging
+from typing import Any, Callable, List, Optional, Union
 
+from sql_models import Rating
 from sqlalchemy import (
     Inspector,
+    MetaData,
     Result,
+    Table,
     create_engine,
     inspect,
     text,
-    MetaData,
-    Table,
 )
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.orm.decl_api import DeclarativeMeta
-
-from sql_models import Rating
 
 
 class SQLMixin:
@@ -53,7 +52,7 @@ class SQLMixin:
             database=database,
         )
 
-        self.engine: Engine = create_engine(url, echo=debug)
+        self.engine: Engine = create_engine(url=url, echo=debug)
         self.session: Session = sessionmaker(bind=self.engine)()
         self.metadata: MetaData = MetaData()
 
@@ -63,7 +62,7 @@ class SQLMixin:
 
         # inspect will load the existing table into the metadata
         # given an Engine or Connection object
-        self.postgres_inspector: Inspector = inspect(self.engine)
+        self.postgres_inspector: Inspector = inspect(subject=self.engine)
 
     def get_tables(self, logger: Callable[[str], None]) -> List[str]:
         """Get table names
@@ -71,7 +70,7 @@ class SQLMixin:
         Args:
             logger (Callable[[str], None]): Logger object
         """
-        table_names = self.postgres_inspector.get_table_names()
+        table_names: List[str] = self.postgres_inspector.get_table_names()
         logger(f"Table names: {table_names}")
         return table_names
 
@@ -90,18 +89,20 @@ class SQLMixin:
             ValueError: Table must be a subclass of DeclarativeMeta
         """
         if not isinstance(table_obj, DeclarativeMeta):
-            logger(str(table_obj.__class__))
+            logger(str(object=table_obj.__class__))
             raise ValueError("Table must be a subclass of DeclarativeMeta")
 
-        tables: List[str] = self.get_tables(logging.getLogger(__name__).info)
+        tables: List[str] = self.get_tables(
+            logger=logging.getLogger(name=__name__).info
+        )
         tablename: str = table_obj.__tablename__  # type: ignore
 
-        if str(tablename) in tables:  # type: ignore
+        if str(object=tablename) in tables:  # type: ignore
             logger(f"table {tablename} already exists")
             return
 
         table_obj.metadata.create_all(bind=self.engine)  # type: ignore
-        self.session.add(table_obj)
+        self.session.add(instance=table_obj)
         self.session.commit()
 
     def get_table_columns_data(
@@ -113,7 +114,13 @@ class SQLMixin:
             table_name (str): Name of the table
             logger (Callable[[str], None]): Logger object
         """
-        logger(str(self.postgres_inspector.get_columns(table_name)))
+        logger(
+            str(
+                object=self.postgres_inspector.get_columns(
+                    table_name=table_name,
+                ),
+            )
+        )
 
     def get_table_column_names(
         self, table_name: str, logger: Callable[[str], None]
@@ -129,7 +136,7 @@ class SQLMixin:
         """
         my_table: Table = self.metadata.tables[table_name]
 
-        inspector: Table = inspect(my_table)
+        inspector: Table = inspect(subject=my_table)
         column_names: List[str] = inspector._columns.keys()  # type: ignore
         logger(f"Column names: {column_names}")
 
@@ -144,10 +151,10 @@ class SQLMixin:
             logger (Logger): Logger object
         """
 
-        results: Result[Any] = session.execute(text(query))
+        results: Result[Any] = session.execute(statement=text(text=query))
 
         for result in results:
-            logger(str(result))
+            logger(str(object=result))
 
     def close_session(self) -> None:
         """Close session"""

@@ -1,43 +1,46 @@
 """Main module"""
 
 from dataclasses import dataclass
-from typing import List
 from logging import Logger
-
-from sqlalchemy import Inspector, MetaData
-from sqlalchemy.orm import Session
-from sqlalchemy.engine import Engine
+from typing import List
 
 from sql_mixin import SQLMixin
-from utils import get_secret, load_secrets_from_file, configure_logger
+from sqlalchemy import Inspector, MetaData
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session
+from utils import configure_logger, get_secret, load_secrets_from_file
 
-
-load_secrets_from_file("creds.env", __file__)
+load_secrets_from_file(target_file_name="creds.env", source_file_name=__file__)
 
 
 @dataclass
 class SQLMain(SQLMixin):  # pylint: disable=R0902, R0903
     """SQLMain class"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize SQLMain"""
-        self.logger: Logger = configure_logger(__name__, "INFO")
+        self.logger: Logger = configure_logger(
+            name=__name__,
+            logger_level_str="INFO",
+        )
 
-        self.db_username: str = get_secret("POSTGRES_USER")
-        self.db_password: str = get_secret("POSTGRES_PASSWORD")
-        db_url: List[str] = get_secret("POSTGRES_ADDRESS").split(":")
+        self.db_username: str = get_secret(secret_name="POSTGRES_USER")
+        self.db_password: str = get_secret(secret_name="POSTGRES_PASSWORD")
+        db_url: List[str] = get_secret(
+            secret_name="POSTGRES_ADDRESS",
+        ).split(sep=":")
         self.db_host: str = db_url[0]
         self.db_port: int = int(db_url[1])
         self.db_name: str = "dvd"
 
         self.configure_engine(
-            "postgresql",
-            self.db_username,
-            self.db_password,
-            self.db_host,
-            self.db_port,
-            self.db_name,
-            False,
+            driver="postgresql",
+            username=self.db_username,
+            password=self.db_password,
+            host=self.db_host,
+            port=self.db_port,
+            database=self.db_name,
+            debug=False,
         )
 
         self.engine: Engine
@@ -64,12 +67,17 @@ if __name__ == "__main__":
     ORDER BY customer.customer_id DESC
     LIMIT {limit};
     """
-    sql_main.raw_query(query, sql_main.session, sql_main.logger.info)
+    sql_main.raw_query(
+        query=query, session=sql_main.session, logger=sql_main.logger.info
+    )
     print("\n")
 
-    sql_main.get_table_column_names(table_name, sql_main.logger.info)
+    sql_main.get_table_column_names(
+        table_name=table_name,
+        logger=sql_main.logger.info,
+    )
     print("\n")
 
-    sql_main.get_tables(sql_main.logger.info)
+    sql_main.get_tables(logger=sql_main.logger.info)
 
     sql_main.close_session()

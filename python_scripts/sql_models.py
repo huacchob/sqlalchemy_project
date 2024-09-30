@@ -6,26 +6,28 @@ from sqlalchemy.orm.decl_api import DeclarativeMeta
 
 Base: DeclarativeMeta = declarative_base()
 
-user_id_seq: Sequence = Sequence("user_id_seq")
+user_id_seq: Sequence = Sequence(name="user_id_seq")
 
 
 class Rating(Base):  # type: ignore # pylint: disable=too-few-public-methods
     """User model"""
 
-    __tablename__ = "ratings"
+    __tablename__: str = "ratings"
 
-    id = Column(Integer, user_id_seq, primary_key=True)
-    stars = Column(Integer)
+    id: Column[int] = Column(
+        __name_pos=Integer, __type_pos=user_id_seq, primary_key=True
+    )
+    stars: Column[int] = Column(__name_pos=Integer)
 
-    def __init__(self, stars: Integer):
+    def __init__(self, stars: Column[int]) -> None:
         """Initialize User
 
         Args:
             stars (int): number of stars
         """
-        self.stars = stars
+        self.stars: Column[int] = stars
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         String representation of User
 
